@@ -1,45 +1,42 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { User } from '@/types';
 import { api } from '@/lib/api';
 
 interface AuthState {
   user: User | null;
   token: string | null;
-  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => void;
-  initializeAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  token: null,
-  isAuthenticated: false,
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      token: null,
 
-  login: async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
-    localStorage.setItem('token', data.accessToken);
-    set({
-      token: data.accessToken,
-      user: data.user,
-      isAuthenticated: true,
-    });
-  },
+      login: async (email, password) => {
+      const response = await api.post('/auth/login', { email, password });
+      // Mapeamos access_token o accessToken al campo 'token' de Zustand
+      const { user, token, access_token, accessToken } = response.data;
+      const jwtToken = token || access_token || accessToken;
 
-  register: async (email, password, name) => {
-    await api.post('/auth/register', { email, password, name });
-  },
+      set({ user, token: jwtToken });
+},
 
-  logout: () => {
-    localStorage.removeItem('token');
-    set({ user: null, token: null, isAuthenticated: false });
-  },
+      register: async (email, password, name) => {
+        await api.post('/auth/register', { email, password, name });
+      },
 
-  initializeAuth: () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      set({ token, isAuthenticated: true });
+      logout: () => {
+        set({ user: null, token: null });
+      },
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
     }
-  },
-}));
+  )
+);

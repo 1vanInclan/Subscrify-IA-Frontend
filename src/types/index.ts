@@ -21,6 +21,15 @@ export interface Subscription {
   createdAt: string;
 }
 
+export interface CreateSubscriptionDto {
+  name: string;
+  price: number;
+  currency?: string;
+  category: string;
+  billingPeriod: 'MONTHLY' | 'YEARLY';
+  nextBillingDate: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model';
