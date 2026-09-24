@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { AIChatWidget } from '@/components/AIChatWidget';
 
 const nunitoSans = Nunito_Sans({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -39,7 +40,7 @@ export default function RootLayout({
         <main className="flex-1 p-6 md:p-8 overflow-y-auto">
           <div className="w-full space-y-6">{children}</div>
         </main>
-
+        <AIChatWidget />
         <Toaster theme="dark" position="bottom-right" richColors />
       </body>
     </html>
