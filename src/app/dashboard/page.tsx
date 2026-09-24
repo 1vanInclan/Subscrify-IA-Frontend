@@ -5,15 +5,22 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSubscriptionStore } from '@/store/useSubscriptionStore';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { CreateSubscriptionModal } from '@/components/subscriptions/CreateSubscriptionModal';
+import { EditSubscriptionModal } from '@/components/subscriptions/EditSubscriptionModal';
+import { DeleteSubscriptionDialog } from '@/components/subscriptions/DeleteSubscriptionDialog';
 import { SubscriptionIcon } from '@/components/subscriptions/SubscriptionsIcon';
-import { CreditCard, DollarSign, LogOut, Plus, TrendingUp } from 'lucide-react';
+import { CreditCard, DollarSign, LogOut, Search, TrendingUp } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, token, logout } = useAuthStore();
   const { subscriptions, loading, error, fetchSubscriptions } = useSubscriptionStore();
   const [isMounted, setIsMounted] = useState(false);
+
+  // Estados para búsqueda y filtrado por categoría
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
   useEffect(() => {
     setIsMounted(true);
@@ -38,9 +45,34 @@ export default function DashboardPage() {
     );
   }
 
-  // Cálculos para las métricas del Bento
+  // Métricas del Bento Grid
   const totalMonthlyCost = subscriptions.reduce((acc, sub) => acc + Number(sub.price || 0), 0);
   const activeCount = subscriptions.length;
+
+  // Lista única de categorías
+  const categories = [
+    'ALL',
+    ...Array.from(
+      new Set(
+        subscriptions
+          .map((sub) => sub.category?.toUpperCase())
+          .filter(Boolean) as string[]
+      )
+    ),
+  ];
+
+  // Filtro dinámico de suscripciones
+  const filteredSubscriptions = subscriptions.filter((sub) => {
+    const matchesSearch =
+      sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (sub.category && sub.category.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesCategory =
+      selectedCategory === 'ALL' ||
+      sub.category?.toUpperCase() === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans selection:bg-zinc-800">
@@ -104,13 +136,47 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Listado Principal de Suscripciones */}
+        {/* Listado Principal con Filtros */}
         <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold tracking-tight text-zinc-200">Mis Servicios</h2>
-            <span className="text-xs text-zinc-500">{subscriptions.length} registrados</span>
+          {/* Header del listado con Búsqueda y Categorías */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold tracking-tight text-zinc-200">Mis Servicios</h2>
+              <span className="text-xs text-zinc-500">{filteredSubscriptions.length} de {subscriptions.length}</span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* Buscador */}
+              <div className="relative w-full sm:w-60">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                <Input
+                  placeholder="Buscar servicio..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 h-9 bg-zinc-900/60 border-zinc-800 text-xs text-zinc-100 rounded-xl placeholder:text-zinc-500 focus:border-zinc-700"
+                />
+              </div>
+
+              {/* Categorías */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all whitespace-nowrap ${
+                      selectedCategory === cat
+                        ? 'bg-zinc-100 text-zinc-950 font-semibold'
+                        : 'bg-zinc-900/80 text-zinc-400 border border-zinc-800/80 hover:text-zinc-200 hover:bg-zinc-800'
+                    }`}
+                  >
+                    {cat === 'ALL' ? 'Todas' : cat}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
+          {/* Renderizado Condicional */}
           {loading && subscriptions.length === 0 ? (
             <div className="flex items-center justify-center py-16 rounded-2xl border border-zinc-800/80 bg-zinc-900/30 text-zinc-500 text-sm">
               Cargando suscripciones...
@@ -119,17 +185,17 @@ export default function DashboardPage() {
             <div className="p-4 border border-red-500/20 bg-red-500/10 text-red-400 text-sm rounded-2xl">
               {error}
             </div>
-          ) : subscriptions.length === 0 ? (
+          ) : filteredSubscriptions.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20 py-12 text-center space-y-3">
-              <p className="text-sm text-zinc-500">No tienes ninguna suscripción registrada todavía.</p>
-              <CreateSubscriptionModal />
+              <p className="text-sm text-zinc-500">No se encontraron suscripciones.</p>
+              {subscriptions.length === 0 && <CreateSubscriptionModal />}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {subscriptions.map((sub) => (
+              {filteredSubscriptions.map((sub) => (
                 <div
                   key={sub.id}
-                  className="group rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 space-y-4 hover:border-zinc-700/80 hover:bg-zinc-900/80 transition-all duration-200"
+                  className="group relative rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 space-y-4 hover:border-zinc-700/80 hover:bg-zinc-900/80 transition-all duration-200"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -142,6 +208,12 @@ export default function DashboardPage() {
                           {sub.category || 'General'}
                         </span>
                       </div>
+                    </div>
+
+                    {/* Acciones flotantes en Hover (Editar / Eliminar) */}
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <EditSubscriptionModal subscription={sub} />
+                      <DeleteSubscriptionDialog id={sub.id} name={sub.name} />
                     </div>
                   </div>
 

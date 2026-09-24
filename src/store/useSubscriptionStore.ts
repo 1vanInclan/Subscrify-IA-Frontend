@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
-import { Subscription, CreateSubscriptionDto } from '@/types';
+import { Subscription, CreateSubscriptionDto, UpdateSubscriptionDto } from '@/types';
 
 interface SubscriptionState {
   subscriptions: Subscription[];
@@ -9,6 +9,7 @@ interface SubscriptionState {
   error: string | null;
   fetchSubscriptions: () => Promise<void>;
   createSubscription: (data: CreateSubscriptionDto) => Promise<void>;
+  updateSubscription: (id: string, data: UpdateSubscriptionDto) => Promise<void>;
   deleteSubscription: (id: string) => Promise<void>;
 }
 
@@ -43,7 +44,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   createSubscription: async (data) => {
     set({ loading: true, error: null });
     try {
-      // Inyectamos getAuthHeaders() directamente en la petición POST
       const response = await api.post('/subscriptions', data, getAuthHeaders());
       set({
         subscriptions: [...get().subscriptions, response.data],
@@ -58,6 +58,25 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     }
   },
 
+  updateSubscription: async (id, data) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.patch(`/subscriptions/${id}`, data, getAuthHeaders());
+      set({
+        subscriptions: get().subscriptions.map((sub) =>
+          sub.id === id ? response.data : sub
+        ),
+        loading: false,
+      });
+    } catch (err: any) {
+      set({
+        error: err.response?.data?.message || 'Error al actualizar suscripción',
+        loading: false,
+      });
+      throw err;
+    }
+  },
+
   deleteSubscription: async (id) => {
     try {
       await api.delete(`/subscriptions/${id}`, getAuthHeaders());
@@ -66,6 +85,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       });
     } catch (err: any) {
       set({ error: err.response?.data?.message || 'Error al eliminar suscripción' });
+      throw err;
     }
   },
 }));

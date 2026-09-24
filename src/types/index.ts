@@ -36,3 +36,5 @@ export interface ChatMessage {
   text: string;
   executedTools?: any[];
 }
+
+export type UpdateSubscriptionDto = Partial<CreateSubscriptionDto>;
