@@ -79,7 +79,7 @@ src/
 Antes de comenzar, asegúrate de contar con las siguientes herramientas en tu entorno local:
 
 - **Node.js**: `v18.17.0` o superior (se recomienda Node.js LTS).
-- **pnpm**: `v8.0.0` o superior (gestor de paquetes por defecto del proyecto).
+- **npm**: gestor de paquetes por defecto del proyecto.
 - **Git**: Para clonar y controlar versiones.
 - **Backend Running**: Tener la API REST de Subscrify ejecutándose localmente o accesible en red.
 
@@ -100,23 +100,15 @@ Antes de comenzar, asegúrate de contar con las siguientes herramientas en tu en
    pnpm install
    ```
 
-3. **Configurar las variables de entorno:**
-
-   Copia el archivo de ejemplo para crear tu configuración local:
-
-   ```bash
-   cp .env.example .env.local
-   ```
-
-4. **Iniciar el servidor de desarrollo:**
+3. **Iniciar el servidor de desarrollo:**
 
    ```bash
    pnpm dev
    ```
 
-5. **Abrir en el navegador:**
+4. **Abrir en el navegador:**
 
-   Visita [http://localhost:3000](http://localhost:3000) para ver la aplicación ejecutándose.
+   Visita http://localhost:8080 para ver la aplicación ejecutándose.
 
 ---
 
@@ -137,10 +129,10 @@ En el directorio del proyecto puedes ejecutar:
 
 | Comando | Descripción |
 | :--- | :--- |
-| `pnpm dev` | Inicia la aplicación en modo desarrollo con Hot Reload. |
-| `pnpm build` | Compila la aplicación optimizada para producción. |
-| `pnpm start` | Inicia el servidor de producción tras ejecutar `build`. |
-| `pnpm lint` | Ejecuta ESLint para analizar errores y calidad del código. |
+| `npm run dev` | Inicia la aplicación en modo desarrollo con Hot Reload. |
+| `npm run build` | Compila la aplicación optimizada para producción. |
+| `npm run start` | Inicia el servidor de producción tras ejecutar `build`. |
+| `npm lint` | Ejecuta ESLint para analizar errores y calidad del código. |
 
 ---
 
@@ -153,5 +145,3 @@ El cliente frontend implementa comunicación asíncrona y basada en eventos para
 3. **Persistencia Local:** Adaptación dinámica del saludo del bot consumiendo los datos de perfil/autenticación del usuario actual.
 
 ---
-
-Hecho con ❤️ para **Subscrify**.
