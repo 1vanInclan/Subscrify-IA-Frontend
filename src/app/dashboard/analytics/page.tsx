@@ -111,14 +111,12 @@ export default function AnalyticsPage() {
 
       {/* Secciones de Gráficas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-        
         {/* PieChart: Distribución por Categoría */}
         <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 space-y-4">
           <div className="flex items-center gap-2">
             <PieIcon className="w-4 h-4 text-zinc-400" />
             <h2 className="text-sm font-semibold text-zinc-200">Gasto por Categoría</h2>
           </div>
-          
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>

@@ -19,7 +19,6 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email, password) => {
       const response = await api.post('/auth/login', { email, password });
-      // Mapeamos access_token o accessToken al campo 'token' de Zustand
       const { user, token, access_token, accessToken } = response.data;
       const jwtToken = token || access_token || accessToken;
 

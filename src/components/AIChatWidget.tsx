@@ -24,11 +24,6 @@ export function AIChatWidget() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const publicRoutes = ['/login', '/register', '/'];
-  if (publicRoutes.includes(pathname)) {
-    return null;
-  }
-
   // Cargar usuario y mensaje inicial
   const resetChat = (name: string = userName) => {
     setMessages([
@@ -104,6 +99,11 @@ export function AIChatWidget() {
       );
     });
   };
+
+  const publicRoutes = ['/login', '/register', '/'];
+  if (publicRoutes.includes(pathname)) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-6 right-6 z-50">

@@ -4,52 +4,58 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSubscriptionStore } from '@/store/useSubscriptionStore';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CreateSubscriptionModal } from '@/components/subscriptions/CreateSubscriptionModal';
 import { EditSubscriptionModal } from '@/components/subscriptions/EditSubscriptionModal';
 import { DeleteSubscriptionDialog } from '@/components/subscriptions/DeleteSubscriptionDialog';
 import { SubscriptionIcon } from '@/components/subscriptions/SubscriptionsIcon';
-import { CreditCard, DollarSign, LogOut, Search, TrendingUp } from 'lucide-react';
+import { CreditCard, DollarSign, Search, TrendingUp, Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, token, logout } = useAuthStore();
+  const { token } = useAuthStore();
   const { subscriptions, loading, error, fetchSubscriptions } = useSubscriptionStore();
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Estados para búsqueda y filtrado por categoría
+  
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
   useEffect(() => {
-    setIsMounted(true);
+    const unsubHydrate = useAuthStore.persist.onFinishHydration(() => {
+      setHasHydrated(true);
+    });
+
+    if (useAuthStore.persist.hasHydrated()) {
+      setHasHydrated(true);
+    }
+
+    return () => unsubHydrate();
   }, []);
 
   useEffect(() => {
-    if (isMounted) {
-      const storedToken = token || localStorage.getItem('auth-storage');
-      if (!token && !storedToken) {
-        router.push('/login');
+    if (hasHydrated) {
+      if (!token) {
+        router.replace('/login');
       } else {
         fetchSubscriptions();
       }
     }
-  }, [isMounted, token, router, fetchSubscriptions]);
+  }, [hasHydrated, token, router, fetchSubscriptions]);
 
-  if (!isMounted) {
+  if (!hasHydrated || !token) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-500 font-medium">
-        Cargando interfaz...
+      <div className="flex min-h-[70vh] w-full items-center justify-center text-zinc-500 font-medium">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+          <span className="text-xs text-zinc-400">Verificando sesión...</span>
+        </div>
       </div>
     );
   }
 
-  // Métricas del Bento Grid
   const totalMonthlyCost = subscriptions.reduce((acc, sub) => acc + Number(sub.price || 0), 0);
   const activeCount = subscriptions.length;
 
-  // Lista única de categorías
   const categories = [
     'ALL',
     ...Array.from(
@@ -61,7 +67,6 @@ export default function DashboardPage() {
     ),
   ];
 
-  // Filtro dinámico de suscripciones
   const filteredSubscriptions = subscriptions.filter((sub) => {
     const matchesSearch =
       sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -78,32 +83,6 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans selection:bg-zinc-800">
       <div className="mx-auto max-w-5xl space-y-6">
 
-        {/* Top Navbar Header */}
-        {/* <header className="flex items-center justify-between border-b border-zinc-800/80 pb-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-100 text-zinc-950 font-bold">
-              S
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-zinc-100">Subscrify</h1>
-              <p className="text-xs text-zinc-400">{user?.email || 'Panel de control'}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <CreateSubscriptionModal />
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 rounded-xl"
-              onClick={() => { logout(); router.push('/login'); }}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Salir
-            </Button>
-          </div>
-        </header> */}
-
-        {/* Bento Grid: Métricas Principales */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-5 space-y-2 backdrop-blur-sm">
             <div className="flex items-center justify-between text-zinc-400">
@@ -136,9 +115,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Listado Principal con Filtros */}
         <div className="space-y-4 pt-2">
-          {/* Header del listado con Búsqueda y Categorías */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-semibold tracking-tight text-zinc-200">Mis Servicios</h2>
@@ -146,7 +123,6 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              {/* Buscador */}
               <div className="relative w-full sm:w-60">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
                 <Input
@@ -157,7 +133,6 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* Categorías */}
               <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                 {categories.map((cat) => (
                   <button
@@ -176,7 +151,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Renderizado Condicional */}
           {loading && subscriptions.length === 0 ? (
             <div className="flex items-center justify-center py-16 rounded-2xl border border-zinc-800/80 bg-zinc-900/30 text-zinc-500 text-sm">
               Cargando suscripciones...
@@ -210,7 +184,6 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Acciones flotantes en Hover (Editar / Eliminar) */}
                     <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <EditSubscriptionModal subscription={sub} />
                       <DeleteSubscriptionDialog id={sub.id} name={sub.name} />
