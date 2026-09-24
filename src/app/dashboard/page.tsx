@@ -79,7 +79,7 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-5xl space-y-6">
 
         {/* Top Navbar Header */}
-        <header className="flex items-center justify-between border-b border-zinc-800/80 pb-5">
+        {/* <header className="flex items-center justify-between border-b border-zinc-800/80 pb-5">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-100 text-zinc-950 font-bold">
               S
@@ -101,7 +101,7 @@ export default function DashboardPage() {
               Salir
             </Button>
           </div>
-        </header>
+        </header> */}
 
         {/* Bento Grid: Métricas Principales */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
